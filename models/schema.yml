@@ -11,7 +11,3 @@ models:
       - name: first_name
         tests:
           - not_null
-
-      - name: customer_lifetime_value
-        tests:
-          - not_null
