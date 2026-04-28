@@ -1,0 +1,48 @@
+[0m17:32:42.911962 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E94E9B1160>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E94B6F2D50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E94FD2BD90>]}
+
+
+============================== 17:32:42.921054 | d2f93eb8-7edf-487e-a7d4-69b4ac1a4547 ==============================
+[0m17:32:42.921054 [info ] [MainThread]: Running with dbt=1.11.8
+[0m17:32:42.922125 [debug] [MainThread]: running dbt with arguments {'invocation_command': 'dbt init hevo_project', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'quiet': 'False', 'printer_width': '80', 'target_path': 'None', 'indirect_selection': 'eager', 'send_anonymous_usage_stats': 'True', 'use_colors': 'True', 'static_parser': 'True', 'log_cache_events': 'False', 'log_path': 'logs', 'profiles_dir': 'C:\\Users\\kkrishna1\\.dbt', 'cache_selected_only': 'False', 'introspect': 'True', 'warn_error': 'None', 'write_json': 'True', 'empty': 'None', 'partial_parse': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'debug': 'False', 'fail_fast': 'False', 'log_format': 'default'}
+[0m17:32:42.961523 [info ] [MainThread]: Creating dbt configuration folder at C:\Users\kkrishna1\.dbt
+[0m17:32:42.965315 [debug] [MainThread]: Starter project path: C:\Users\kkrishna1\AppData\Local\Programs\Python\Python313\Lib\site-packages\dbt\include\starter_project
+[0m17:32:43.010340 [info ] [MainThread]: 
+Your new dbt project "hevo_project" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m17:32:43.011195 [info ] [MainThread]: Setting up your profile.
+[0m17:33:18.667457 [debug] [MainThread]: Snowflake adapter: Setting snowflake.connector to ERROR (file logging only)
+[0m17:33:18.669459 [debug] [MainThread]: Snowflake adapter: Setting botocore to ERROR (file logging only)
+[0m17:33:18.669870 [debug] [MainThread]: Snowflake adapter: Setting boto3 to ERROR (file logging only)
+[0m17:35:02.247281 [info ] [MainThread]: Profile hevo_project written to C:\Users\kkrishna1\.dbt\profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m17:35:02.249081 [debug] [MainThread]: Command `dbt init` succeeded at 17:35:02.248965 after 139.58 seconds
+[0m17:35:02.249383 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E9624416E0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E961B18B90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001E962428D10>]}
+[0m17:35:02.249692 [debug] [MainThread]: Flushing usage events
+[0m17:35:04.329872 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m17:47:47.517382 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001CFC24D1160>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001CFBF212D50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001CFC38ABD90>]}
+
+
+============================== 17:47:47.524283 | 32eaabc6-fd81-4327-bc83-29dea7641858 ==============================
+[0m17:47:47.524283 [info ] [MainThread]: Running with dbt=1.11.8
+[0m17:47:47.525055 [debug] [MainThread]: running dbt with arguments {'invocation_command': 'dbt run', 'version_check': 'True', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'target_path': 'None', 'indirect_selection': 'eager', 'send_anonymous_usage_stats': 'True', 'cache_selected_only': 'False', 'static_parser': 'True', 'log_cache_events': 'False', 'log_path': 'logs', 'warn_error': 'None', 'profiles_dir': 'C:\\Users\\kkrishna1\\.dbt', 'empty': 'False', 'use_colors': 'True', 'introspect': 'True', 'write_json': 'True', 'partial_parse': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'debug': 'False', 'fail_fast': 'False', 'log_format': 'default'}
+[0m17:47:47.525728 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path C:\Users\kkrishna1\Desktop\hevo-cse-assessment\dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m17:47:47.526983 [debug] [MainThread]: Command `dbt run` failed at 17:47:47.526821 after 0.17 seconds
+[0m17:47:47.527318 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001CFC38475C0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001CFC38E16D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001CFC3888C00>]}
+[0m17:47:47.527646 [debug] [MainThread]: Flushing usage events
+[0m17:47:48.846800 [debug] [MainThread]: An error was encountered while trying to flush usage events
