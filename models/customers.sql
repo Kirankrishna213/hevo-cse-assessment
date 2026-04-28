@@ -1,20 +1,53 @@
-{{ config(materialized='table') }}
+WITH customers AS (
 
-SELECT 
-    c.id AS customer_id,
-    c.first_name,
-    c.last_name,
+    SELECT
+        id AS customer_id,
+        first_name,
+        last_name
+    FROM {{ ref('raw_customers') }}
 
-    MIN(o.order_date) AS first_order,
-    MAX(o.order_date) AS most_recent_order,
-    COUNT(DISTINCT o.id) AS number_of_orders,
+),
 
-    SUM(p.amount) AS customer_lifetime_value
+orders AS (
 
-FROM {{ ref('raw_customers') }} c
-LEFT JOIN {{ ref('raw_orders') }} o 
-    ON c.id = o.customer_id
-LEFT JOIN {{ ref('raw_payments') }} p 
-    ON o.id = p.order_id
+    SELECT
+        id AS order_id,
+        user_id AS customer_id,
+        order_date,
+        status
+    FROM {{ ref('raw_orders') }}
 
-GROUP BY c.id, c.first_name, c.last_name
+),
+
+payments AS (
+
+    SELECT
+        id AS payment_id,
+        order_id,
+        payment_method,
+        amount
+    FROM {{ ref('raw_payments') }}
+
+),
+
+customer_orders AS (
+
+    SELECT
+        c.customer_id,
+        c.first_name,
+        c.last_name,
+        o.order_id,
+        o.order_date,
+        o.status,
+        p.payment_method,
+        p.amount
+    FROM customers c
+    LEFT JOIN orders o
+        ON c.customer_id = o.customer_id
+    LEFT JOIN payments p
+        ON o.order_id = p.order_id
+
+)
+
+SELECT *
+FROM customer_orders
