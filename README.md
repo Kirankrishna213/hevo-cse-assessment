@@ -1,212 +1,172 @@
-# Real-Time Data Pipeline using PostgreSQL, Hevo, Snowflake and dbt
+# Hevo CSE Assessment – End-to-End Data Pipeline
+
+## Overview
+
+This project demonstrates a complete data pipeline:
+
+PostgreSQL → Hevo (CDC) → Snowflake → Transformations (Hevo Models / dbt structure)
 
 ---
 
-## Project Overview
 
-This project demonstrates an end-to-end real-time data pipeline that captures data changes from PostgreSQL and loads them into Snowflake using Change Data Capture (CDC). The ingested raw data is then transformed into analytics-ready models using dbt.
+## Note on Environment Setup
 
-The objective is to showcase practical understanding of modern data engineering workflows, including ingestion, replication, transformation, and validation.
+Initially, I attempted to connect a local PostgreSQL instance (Docker) to Hevo using tunneling tools.
 
----
+However, this approach required exposing a local database to the internet. Tools like ngrok required account verification with a credit/debit card for TCP tunnels, and Cloudflare Tunnel faced network connectivity constraints in my environment.
+
+To ensure a stable and production-like setup, I proceeded with a managed PostgreSQL instance (Neon), which provides secure public connectivity and is better aligned with real-world data pipeline architectures.
+
+This allowed me to focus on building a reliable CDC pipeline, transformations, and data modeling without external networking dependencies.
+
 
 ## Architecture
 
-PostgreSQL (Neon)
-→ Hevo Data (CDC via Logical Replication)
-→ Snowflake (Raw Layer - HEVO_PUBLIC)
-→ dbt (Transformation Layer)
-→ Analytics-ready models
+PostgreSQL (Source)
+→ Hevo Data (Ingestion using CDC)
+→ Snowflake (RAW Tables)
+→ Hevo Models (STG → DIM → FACT → AGG)
+→ Analytics-ready tables
 
 ---
 
-## Key Concepts
+## Prerequisites
 
-* Change Data Capture (CDC)
-* PostgreSQL Logical Replication
-* Publications and Replication Slots
-* Incremental Data Pipelines
-* Cloud Data Warehousing (Snowflake)
-* Data Transformation using dbt
-
----
-
-## Technology Stack
-
-* Source Database: PostgreSQL (Neon)
-* Data Pipeline: Hevo Data
-* Data Warehouse: Snowflake
-* Transformation Tool: dbt
-* Language: SQL
+* PostgreSQL (Neon or local Docker)
+* Hevo account
+* Snowflake account
+* Git installed
+* GitHub repository
 
 ---
 
-## How CDC Works in This Project
+## Step 1: Setup PostgreSQL (Source)
 
-1. PostgreSQL records changes in the Write-Ahead Log (WAL)
-2. A publication (`hevo_pub`) exposes these changes
-3. A replication slot (`hevo_slot`) tracks consumption
-4. Hevo reads changes incrementally using logical replication
-5. Data is loaded into Snowflake in near real-time
+### Connect to PostgreSQL
+
+```bash
+psql "postgresql://<user>:<password>@<host>:5432/<database>"
+```
 
 ---
 
-## Setup Steps
+### Create Tables
 
-### PostgreSQL Setup
+```sql
+CREATE TABLE customers (
+    id INT PRIMARY KEY,
+    first_name TEXT,
+    last_name TEXT
+);
+
+CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    user_id INT,
+    order_date DATE
+);
+
+CREATE TABLE payments (
+    id INT PRIMARY KEY,
+    order_id INT,
+    amount NUMERIC
+);
+```
+
+---
+
+### Insert Sample Data
+
+```sql
+INSERT INTO customers VALUES (1, 'John', 'Doe');
+INSERT INTO orders VALUES (1, 1, CURRENT_DATE);
+INSERT INTO payments VALUES (1, 1, 100);
+```
+
+---
+
+### Enable CDC
 
 ```sql
 CREATE PUBLICATION hevo_pub FOR ALL TABLES;
-
-SELECT * 
-FROM pg_create_logical_replication_slot('hevo_slot', 'pgoutput');
 ```
 
 ---
 
-### Hevo Pipeline Configuration
+## Step 2: Create Pipeline in Hevo
 
-* Source: PostgreSQL (Neon)
+Go to:
 
-* Mode: Logical Replication
-
-* Publication: `hevo_pub`
-
-* Replication Slot: `hevo_slot`
-
-* Destination: Snowflake
-
-* Load Mode: Merge (to prevent duplicates)
-
-* Schema Evolution: Enabled
+Pipelines → Create Pipeline
 
 ---
 
-### Snowflake Setup
+### Configure Source (PostgreSQL)
 
-```sql
-USE DATABASE HEVO_DB;
-USE SCHEMA HEVO_PUBLIC;
+Fill:
 
-SHOW TABLES;
+* Host
+* Port: 5432
+* Database: neondb
+* User
+* Password
+* Publication: hevo_pub
+* Replication Slot: hevo_slot
+
+---
+
+### Configure Destination (Snowflake)
+
+Get values from Snowflake UI:
+
+---
+
+#### Open Snowflake
+
+Go to:
+
+Worksheets → Run:
+
+```sql\
+
+SELECT CURRENT_ACCOUNT();
+SELECT CURRENT_WAREHOUSE();
+SELECT CURRENT_DATABASE();
 ```
 
 ---
 
-## Data Ingestion
+Fill in Hevo:
 
-Tables ingested via Hevo:
-
-* RAW_CUSTOMERS
-* RAW_ORDERS
-* RAW_PAYMENTS
-
----
-
-## Data Transformation using dbt
-
-dbt is used to transform raw data into clean, analytics-ready models.
+* Account URL → from CURRENT_ACCOUNT
+* Warehouse → COMPUTE_WH
+* Database → HEVO_DB
+* User → ACCOUNTADMIN
+* Password → your password
 
 ---
 
-### dbt Models
+### Destination Prefix
 
-#### stg_customers.sql
+Use:
 
-```sql
-SELECT
-    id AS customer_id,
-    first_name,
-    last_name
-FROM HEVO_DB.HEVO_PUBLIC.RAW_CUSTOMERS
+```
+RAW
 ```
 
 ---
 
-#### stg_orders.sql
+### Run Pipeline
 
-```sql
-SELECT
-    id,
-    customer_id,
-    order_date
-FROM HEVO_DB.HEVO_PUBLIC.RAW_ORDERS
-```
+* Select tables: customers, orders, payments
+* Start pipeline
 
 ---
 
-#### stg_payments.sql
+## Step 3: Verify Data in Snowflake
 
-```sql
-SELECT
-    id,
-    order_id,
-    amount
-FROM HEVO_DB.HEVO_PUBLIC.RAW_PAYMENTS
-```
+Go to:
 
----
-
-#### fact_orders.sql
-
-```sql
-SELECT
-    o.id,
-    o.customer_id,
-    p.amount
-FROM HEVO_DB.HEVO_PUBLIC.RAW_ORDERS o
-LEFT JOIN HEVO_DB.HEVO_PUBLIC.RAW_PAYMENTS p
-ON o.id = p.order_id
-```
-
----
-
-### Running dbt
-
-```bash
-dbt run
-dbt test
-```
-
----
-
-## Data Layers
-
-* Raw Layer: Hevo ingestion (HEVO_PUBLIC)
-* Staging Layer: Cleaned data (dbt staging models)
-* Analytics Layer: Final business models (fact tables)
-
----
-
-## Validation
-
-* Verified row counts between PostgreSQL and Snowflake
-* Inserted new records in PostgreSQL and confirmed CDC replication
-* Ensured no duplicate records using Merge mode
-* Validated transformed outputs using dbt
-
----
-
-## Challenges Faced
-
-* IPv4 connectivity limitations with Supabase
-* Logical replication configuration issues
-* Duplicate data during initial setup
-* Exposing local databases for testing
-
----
-
-## Solutions
-
-* Switched to Neon for better connectivity
-* Configured publication and replication slot correctly
-* Used Merge mode to prevent duplication
-* Enabled schema evolution
-* Validated ingestion using Snowflake queries
-
----
-
-## Sample Validation Queries
+Worksheets → Run:
 
 ```sql
 SELECT COUNT(*) FROM HEVO_DB.HEVO_PUBLIC.RAW_CUSTOMERS;
@@ -216,15 +176,206 @@ SELECT COUNT(*) FROM HEVO_DB.HEVO_PUBLIC.RAW_PAYMENTS;
 
 ---
 
-## Future Improvements
+## Step 4: Create Models in Hevo
 
-* Add dbt tests and documentation
-* Implement incremental dbt models
-* Build dashboards using BI tools
-* Add monitoring and alerting for pipeline health
+Go to:
+
+Models → Create SQL Model
+
+---
+
+### Important Rule
+
+Do NOT use full names:
+
+Correct:
+
+```sql
+SELECT * FROM STG_CUSTOMERS;
+```
+
+Wrong:
+
+```sql
+SELECT * FROM HEVO_DB.HEVO_PUBLIC.STG_CUSTOMERS;
+```
+
+---
+
+## STG Models
+
+### STG_ORDERS
+
+```sql
+SELECT 
+    ID,
+    USER_ID AS CUSTOMER_ID,
+    ORDER_DATE
+FROM RAW_ORDERS;
+```
+
+---
+
+### STG_CUSTOMERS
+
+```sql
+SELECT 
+    ID,
+    FIRST_NAME,
+    LAST_NAME
+FROM RAW_CUSTOMERS;
+```
+
+---
+
+### STG_PAYMENTS
+
+```sql
+SELECT 
+    ID,
+    ORDER_ID,
+    AMOUNT
+FROM RAW_PAYMENTS;
+```
+
+---
+
+## DIM Model
+
+### DIM_CUSTOMERS
+
+```sql
+SELECT 
+    ID AS CUSTOMER_ID,
+    FIRST_NAME,
+    LAST_NAME
+FROM STG_CUSTOMERS;
+```
+
+Export as: DIM_CUSTOMERS
+
+---
+
+## FACT Model
+
+### FACT_ORDERS
+
+```sql
+SELECT 
+    o.ID AS ORDER_ID,
+    o.CUSTOMER_ID,
+    p.AMOUNT,
+    o.ORDER_DATE
+FROM STG_ORDERS o
+LEFT JOIN STG_PAYMENTS p
+    ON o.ID = p.ORDER_ID;
+```
+
+---
+
+## AGG Model
+
+### CUSTOMER_SPEND
+
+```sql
+SELECT 
+    f.CUSTOMER_ID,
+    d.FIRST_NAME,
+    d.LAST_NAME,
+    COUNT(*) AS TOTAL_ORDERS,
+    SUM(f.AMOUNT) AS TOTAL_SPENT
+FROM FACT_ORDERS f
+LEFT JOIN DIM_CUSTOMERS d
+    ON f.CUSTOMER_ID = d.CUSTOMER_ID
+GROUP BY f.CUSTOMER_ID, d.FIRST_NAME, d.LAST_NAME;
+```
+
+---
+
+## Step 5: Data Validation
+
+### Row Count Check
+
+```sql
+SELECT COUNT(*) FROM STG_ORDERS;
+SELECT COUNT(*) FROM FACT_ORDERS;
+```
+
+---
+
+### Duplicate Check
+
+```sql
+SELECT ORDER_ID, COUNT(*)
+FROM FACT_ORDERS
+GROUP BY ORDER_ID
+HAVING COUNT(*) > 1;
+```
+
+---
+
+### Null Check
+
+```sql
+SELECT COUNT(*)
+FROM FACT_ORDERS
+WHERE CUSTOMER_ID IS NULL;
+```
+
+---
+
+### Aggregation Check
+
+```sql
+SELECT SUM(AMOUNT) FROM FACT_ORDERS;
+```
+
+---
+
+## Step 6: dbt + Git (Representation)
+
+Although transformations are implemented in Hevo, equivalent dbt-style models are stored for version control.
+
+---
+
+### Git Commands
+
+```bash
+git init
+git add .
+git commit -m "initial commit"
+git branch -M main
+git remote add origin https://github.com/<your-username>/hevo-cse-assessment.git
+git push -u origin main
+```
+
+---
+
+## dbt-style Test Example
+
+```yaml
+version: 2
+
+models:
+  - name: dim_customers
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+```
+
+---
+
+## Key Learnings
+
+* Built CDC pipeline from PostgreSQL to Snowflake
+* Implemented layered data modeling (STG → DIM → FACT → AGG)
+* Ensured data quality using validation checks
+* Understood dbt and Git role in production
 
 ---
 
 ## Conclusion
 
-This project demonstrates a complete modern data pipeline using CDC, cloud data warehousing, and transformation tools. It reflects practical experience in building reliable pipelines, handling data ingestion challenges, and delivering analytics-ready datasets.
+This project demonstrates a production-style data pipeline with ingestion, transformation, validation, and structured modeling using Hevo and Snowflake.
