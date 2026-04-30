@@ -34,4 +34,4 @@ FROM {{ ref('dim_customers') }} d
 LEFT JOIN customer_orders co
     ON d.customer_id = co.customer_id
 LEFT JOIN customer_payments cp
-    ON d.customer_id = cp.customer_id;
+    ON d.customer_id = cp.customer_id
