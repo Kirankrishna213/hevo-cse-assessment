@@ -1,6 +1,7 @@
 version: 2
 
 models:
+
   - name: dim_customers
     columns:
       - name: customer_id
@@ -18,10 +19,10 @@ models:
       - name: customer_id
         tests:
           - not_null
-          
-          - name: fact_car_sales
-  columns:
-    - name: sale_id
-      tests:
-        - unique
-        - not_null
+
+  - name: fact_car_sales
+    columns:
+      - name: sale_id
+        tests:
+          - unique
+          - not_null
