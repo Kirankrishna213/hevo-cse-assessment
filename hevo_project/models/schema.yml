@@ -26,3 +26,10 @@ models:
         tests:
           - unique
           - not_null
+
+    - name: fact_car_sales
+     columns:
+      - name: sale_id
+        tests:
+          - unique
+          - not_null
