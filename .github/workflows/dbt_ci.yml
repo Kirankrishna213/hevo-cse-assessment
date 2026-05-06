@@ -1,0 +1,52 @@
+name: dbt CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dbt
+        run: |
+          pip install dbt-snowflake
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+
+          cat <<EOF > ~/.dbt/profiles.yml
+          hevo_project:
+            target: dev
+            outputs:
+              dev:
+                type: snowflake
+                account: ${{ secrets.DBT_ACCOUNT }}
+                user: ${{ secrets.DBT_USER }}
+                password: ${{ secrets.DBT_PASSWORD }}
+                role: ACCOUNTADMIN
+                database: HEVO_DB
+                warehouse: COMPUTE_WH
+                schema: HEVO_PUBLIC
+          EOF
+
+      - name: Run dbt debug
+        run: dbt debug --project-dir ./hevo_project
+
+      - name: Run dbt build
+        run: dbt build --project-dir ./hevo_project
