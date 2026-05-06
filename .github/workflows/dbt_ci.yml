@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Python
@@ -21,5 +21,27 @@ jobs:
       - name: Install dbt
         run: pip install dbt-snowflake
 
-      - name: Verify dbt
-        run: dbt --version
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+
+          cat <<EOF > ~/.dbt/profiles.yml
+          hevo_project:
+            target: dev
+            outputs:
+              dev:
+                type: snowflake
+                account: ${{ secrets.DBT_ACCOUNT }}
+                user: ${{ secrets.DBT_USER }}
+                password: ${{ secrets.DBT_PASSWORD }}
+                role: ACCOUNTADMIN
+                database: HEVO_DB
+                warehouse: COMPUTE_WH
+                schema: HEVO_PUBLIC
+          EOF
+
+      - name: Run dbt debug
+        run: dbt debug --project-dir ./hevo_project
+
+      - name: Run dbt build
+        run: dbt build --project-dir ./hevo_project
