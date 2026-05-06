@@ -27,9 +27,17 @@ models:
           - unique
           - not_null
 
-    - name: fact_car_sales
-     columns:
-      - name: sale_id
-        tests:
-          - unique
-          - not_null
+version: 2
+
+sources:
+  - name: raw_public
+    database: HEVO_DB
+    schema: RAW_PUBLIC
+
+    tables:
+      - name: car_sales
+        columns:
+          - name: sale_id
+            tests:
+              - unique
+              - not_null
