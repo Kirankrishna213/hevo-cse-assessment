@@ -1,23 +1,32 @@
-{{ config(materialized='view') }}
+{{ config(
+    materialized='table'
+) }}
+
+WITH ranked_sales AS (
+
+    SELECT
+        sale_id,
+        car_brand,
+        model,
+        amount,
+        updated_at,
+
+        ROW_NUMBER() OVER (
+            PARTITION BY sale_id
+            ORDER BY updated_at DESC
+        ) AS rn
+
+    FROM HEVO_DB.RAW_PUBLIC.CAR_SALES
+
+)
 
 SELECT
-    customer_id,
+    sale_id,
+    car_brand,
+    model,
+    amount,
+    updated_at
 
-    UPPER(full_name) AS full_name,
+FROM ranked_sales
 
-    SPLIT_PART(email, '@', 1) || '@*****.com'
-        AS masked_email,
-
-    'XXXXXX' || RIGHT(phone, 4)
-        AS masked_phone,
-
-    'XXX-XX-' || RIGHT(ssn, 4)
-        AS masked_ssn,
-
-    INITCAP(city) AS city,
-
-    created_at,
-
-    FALSE AS is_deleted
-
-FROM HEVO_DB.RAW_PUBLIC.CUSTOMER_SECURE
+WHERE rn = 1
