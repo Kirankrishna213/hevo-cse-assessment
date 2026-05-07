@@ -1,9 +1,18 @@
 version: 2
 
+sources:
+  - name: raw_public
+    database: HEVO_DB
+    schema: RAW_PUBLIC
+
+    tables:
+      - name: customer_secure
+
 models:
 
   - name: dim_customers
     columns:
+
       - name: customer_id
         tests:
           - not_null
@@ -11,6 +20,7 @@ models:
 
   - name: fact_orders
     columns:
+
       - name: order_id
         tests:
           - not_null
@@ -20,14 +30,7 @@ models:
         tests:
           - not_null
 
-  - name: fact_car_sales
-    columns:
-      - name: sale_id
-        tests:
-          - unique
-          - not_null
-
-   - name: dim_customer_secure
+  - name: dim_customer_secure
     columns:
 
       - name: customer_id
