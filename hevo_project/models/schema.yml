@@ -27,16 +27,18 @@ models:
           - unique
           - not_null
 
-  - name: dim_customer_secure
+   - name: dim_customer_secure
     columns:
-    - name: customer_id
-      tests:
-        - unique
-        - not_null
 
-    - name: masked_email
-      tests:
-        - not_null
-        - name: is_deleted
-          tests:
-            - not_null
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+      - name: masked_email
+        tests:
+          - not_null
+
+      - name: is_deleted
+        tests:
+          - not_null
