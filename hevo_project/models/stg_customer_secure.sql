@@ -1,32 +1,31 @@
 {{ config(
-    materialized='table'
+    materialized='view'
 ) }}
 
-WITH ranked_sales AS (
-
-    SELECT
-        sale_id,
-        car_brand,
-        model,
-        amount,
-        updated_at,
-
-        ROW_NUMBER() OVER (
-            PARTITION BY sale_id
-            ORDER BY updated_at DESC
-        ) AS rn
-
-    FROM HEVO_DB.RAW_PUBLIC.CAR_SALES
-
-)
-
 SELECT
-    sale_id,
-    car_brand,
-    model,
-    amount,
-    updated_at
+    customer_id,
 
-FROM ranked_sales
+    UPPER(full_name) AS full_name,
 
-WHERE rn = 1
+    SPLIT_PART(email, '@', 1) || '@*****.com'
+        AS masked_email,
+
+    'XXXXXX' || RIGHT(phone, 4)
+        AS masked_phone,
+
+    'XXX-XX-' || RIGHT(ssn, 4)
+        AS masked_ssn,
+
+    INITCAP(city) AS city,
+
+    created_at,
+
+    __HEVO_OP_TYPE,
+
+    CASE
+        WHEN __HEVO_OP_TYPE = 'D'
+        THEN TRUE
+        ELSE FALSE
+    END AS is_deleted
+
+FROM HEVO_DB.RAW_PUBLIC.CUSTOMER_SECURE
