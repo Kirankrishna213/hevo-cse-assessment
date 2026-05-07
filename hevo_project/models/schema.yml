@@ -37,3 +37,6 @@ models:
     - name: masked_email
       tests:
         - not_null
+        - name: is_deleted
+          tests:
+            - not_null
