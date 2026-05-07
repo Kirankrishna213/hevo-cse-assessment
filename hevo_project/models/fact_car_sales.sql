@@ -10,7 +10,6 @@ WITH ranked_sales AS (
         model,
         amount,
         updated_at,
-        __hevo_op_type,
 
         ROW_NUMBER() OVER (
             PARTITION BY sale_id
@@ -31,4 +30,3 @@ SELECT
 FROM ranked_sales
 
 WHERE rn = 1
-AND __hevo_op_type != 'D'

@@ -18,12 +18,6 @@ SELECT
 
     created_at,
 
-    __HEVO_OP_TYPE,
-
-    CASE
-        WHEN __HEVO_OP_TYPE = 'D'
-        THEN TRUE
-        ELSE FALSE
-    END AS is_deleted
+    FALSE AS is_deleted
 
 FROM HEVO_DB.RAW_PUBLIC.CUSTOMER_SECURE
