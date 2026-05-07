@@ -10,4 +10,4 @@ SELECT
     created_at,
     is_deleted
 
-FROM {{ ref('stg_customer_secure') }}
+FROM {{ ref('stg_customer_secure') }} 
