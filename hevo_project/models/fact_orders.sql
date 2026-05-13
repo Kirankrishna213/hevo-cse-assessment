@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 WITH payments_agg AS (
 
     SELECT
